@@ -31,6 +31,12 @@ if grep -qi microsoft /proc/version 2>/dev/null || [[ "$(uname -r)" == *WSL* ]];
   echo "      Clonar el repo dentro de WSL2 (ej: ~/cloud-foundations-lab) mejora el rendimiento."
 fi
 
+# Instalar dependencias Python
+if [ -f requirements.txt ]; then
+  python3 -m pip install -r requirements.txt --quiet
+  echo "Dependencias Python instaladas."
+fi
+
 # Crear .env desde .env.example si no existe
 if [ ! -f .env ]; then
   cp .env.example .env
@@ -74,7 +80,6 @@ echo "  1. Levantar servicios base:"
 echo "       docker compose up -d postgres minio redis"
 echo
 echo "  2. Cargar base de datos:"
-echo "       pip install -r requirements.txt"
 echo "       python scripts/load_postgres.py"
 echo
 echo "  3. Procesar eventos:"

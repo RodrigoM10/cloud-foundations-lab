@@ -3,10 +3,11 @@
   "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
 
   "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
 
   "postCreateCommand": "python3 -m pip install -r requirements.txt && cp .env.example .env",
+  "postStartCommand": "sudo /usr/local/share/docker-init.sh",
 
   "forwardPorts": [5432, 9000, 9001, 6379, 9092, 4566],
   "portsAttributes": {
