@@ -1,5 +1,7 @@
 # Comandos útiles de PostgreSQL
 
+Base de datos del curso: `course` · tablas: `customers`, `orders`
+
 ## Conectarse
 
 ```bash
@@ -19,8 +21,8 @@ psql -h localhost -U postgres -d course
 \l                  -- listar bases de datos
 \c course           -- conectarse a la base "course"
 \dt                 -- listar tablas del schema actual
-\dt events.*        -- listar tablas del schema "events"
-\d signups          -- describir una tabla (columnas, tipos, constraints)
+\d customers        -- describir una tabla (columnas, tipos, constraints)
+\d orders
 \dn                 -- listar schemas
 \du                 -- listar usuarios/roles
 \x                  -- activar/desactivar modo expanded (útil para filas anchas)
@@ -34,22 +36,30 @@ psql -h localhost -U postgres -d course
 
 ```sql
 -- Ver todas las filas
-SELECT * FROM events.signups;
+SELECT * FROM customers;
+SELECT * FROM orders;
 
 -- Filtrar
-SELECT * FROM events.signups WHERE country = 'AR';
+SELECT * FROM customers WHERE country = 'AR';
 
 -- Contar
-SELECT COUNT(*) FROM events.signups;
+SELECT COUNT(*) FROM customers;
 
 -- Agrupar
 SELECT country, COUNT(*) AS total
-FROM events.signups
+FROM customers
 GROUP BY country
 ORDER BY total DESC;
 
 -- Últimos registros
-SELECT * FROM events.signups ORDER BY ts DESC LIMIT 10;
+SELECT * FROM orders ORDER BY created_at DESC LIMIT 10;
+
+-- JOIN: clientes con su total de compras
+SELECT c.name, c.country, SUM(o.amount) AS total
+FROM customers c
+JOIN orders o ON c.id = o.customer_id
+GROUP BY c.name, c.country
+ORDER BY total DESC;
 ```
 
 ---
@@ -57,10 +67,7 @@ SELECT * FROM events.signups ORDER BY ts DESC LIMIT 10;
 ## Explorar la base
 
 ```sql
--- Ver schemas disponibles
-SELECT schema_name FROM information_schema.schemata;
-
--- Ver todas las tablas con su schema
+-- Ver todas las tablas
 SELECT table_schema, table_name
 FROM information_schema.tables
 WHERE table_type = 'BASE TABLE'
@@ -69,8 +76,8 @@ WHERE table_type = 'BASE TABLE'
 -- Ver columnas de una tabla
 SELECT column_name, data_type, is_nullable
 FROM information_schema.columns
-WHERE table_schema = 'events'
-  AND table_name = 'signups';
+WHERE table_schema = 'public'
+  AND table_name = 'customers';
 
 -- Tamaño de cada tabla
 SELECT
@@ -86,17 +93,16 @@ ORDER BY pg_total_relation_size(relid) DESC;
 
 ```sql
 -- Insertar una fila
-INSERT INTO events.signups (user_id, country, email, ts)
-VALUES (99, 'BR', 'test@example.com', NOW());
+INSERT INTO customers (name, country) VALUES ('Test', 'BR');
 
 -- Actualizar
-UPDATE events.signups SET country = 'MX' WHERE user_id = 99;
+UPDATE customers SET country = 'MX' WHERE name = 'Test';
 
 -- Borrar
-DELETE FROM events.signups WHERE user_id = 99;
+DELETE FROM customers WHERE name = 'Test';
 
 -- Truncar (borrar todo, más rápido que DELETE)
-TRUNCATE events.signups;
+TRUNCATE orders;
 ```
 
 ---
@@ -104,14 +110,14 @@ TRUNCATE events.signups;
 ## Transacciones
 
 ```sql
+-- Deshacer cambios
 BEGIN;
-  INSERT INTO events.signups (user_id, country, email, ts)
-  VALUES (100, 'CL', 'rollback@example.com', NOW());
-  -- algo salió mal → deshacer
+  INSERT INTO customers (name, country) VALUES ('Rollback', 'PE');
 ROLLBACK;
 
+-- Confirmar cambios
 BEGIN;
-  UPDATE events.signups SET country = 'PE' WHERE user_id = 1;
+  UPDATE customers SET country = 'AR' WHERE name = 'Grace';
 COMMIT;
 ```
 
@@ -121,16 +127,17 @@ COMMIT;
 
 ```sql
 -- Dentro de psql
-\copy (SELECT * FROM events.signups) TO '/tmp/signups.csv' CSV HEADER;
+\copy (SELECT * FROM customers) TO '/tmp/customers.csv' CSV HEADER;
+\copy (SELECT c.name, c.country, o.amount, o.created_at FROM customers c JOIN orders o ON c.id = o.customer_id) TO '/tmp/orders.csv' CSV HEADER;
 ```
 
 ```bash
-# Desde el terminal — correr query y copiar el CSV al workspace
+# Desde el terminal — exportar y copiar al workspace
 docker exec -i cloud-foundations-postgres \
   psql -U postgres -d course \
-  -c "\copy (SELECT * FROM events.signups) TO '/tmp/signups.csv' CSV HEADER"
+  -c "\copy (SELECT * FROM customers) TO '/tmp/customers.csv' CSV HEADER"
 
-docker cp cloud-foundations-postgres:/tmp/signups.csv data/processed/signups.csv
+docker cp cloud-foundations-postgres:/tmp/customers.csv data/processed/customers.csv
 ```
 
 ---
@@ -161,5 +168,5 @@ WHERE relation IS NOT NULL;
 | `psql` directo | RDS Query Editor / DBeaver via bastion |
 | `docker exec … psql` | Session Manager + psql en instancia EC2 |
 | `\copy … TO CSV` | `UNLOAD` en Redshift, S3 Export en RDS |
-| Schema `events` | Separación de dominios en RDS multi-tenant |
 | `pg_stat_activity` | Performance Insights en RDS |
+| `pg_statio_user_tables` | Enhanced Monitoring en RDS |
