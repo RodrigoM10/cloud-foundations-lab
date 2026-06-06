@@ -1,0 +1,23 @@
+[
+  {
+    "event": "signup",
+    "user_id": 1,
+    "country": "AR",
+    "email": "ada@example.com",
+    "ts": "2024-01-15T10:00:00Z"
+  },
+  {
+    "event": "signup",
+    "user_id": 2,
+    "country": "UY",
+    "email": "grace@example.com",
+    "ts": "2024-01-15T11:00:00Z"
+  },
+  {
+    "event": "signup",
+    "user_id": 3,
+    "country": "CL",
+    "email": "linus@example.com",
+    "ts": "2024-01-15T13:00:00Z"
+  }
+]
