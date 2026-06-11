@@ -44,22 +44,7 @@ if [ ! -f .env ]; then
 fi
 
 # Crear directorios necesarios
-mkdir -p data/raw data/processed docs logs
-
-# Crear eventos de ejemplo si no existen
-if [ ! -f data/raw/events.jsonl ]; then
-  cat > data/raw/events.jsonl <<'DATA'
-{"event":"signup","user_id":1,"country":"AR","email":"ada@example.com","ts":"2024-01-15T10:00:00Z"}
-{"event":"login","user_id":1,"ts":"2024-01-15T10:05:00Z"}
-{"event":"signup","user_id":2,"country":"UY","email":"grace@example.com","ts":"2024-01-15T11:00:00Z"}
-{"event":"purchase","user_id":1,"item_id":"i100","amount":1200,"ts":"2024-01-15T12:00:00Z"}
-{"event":"signup","user_id":3,"country":"CL","email":"linus@example.com","ts":"2024-01-15T13:00:00Z"}
-{"event":"login","user_id":2,"ts":"2024-01-15T13:30:00Z"}
-{"event":"purchase","user_id":2,"item_id":"i200","amount":850,"ts":"2024-01-15T14:00:00Z"}
-{"event":"logout","user_id":1,"ts":"2024-01-15T14:30:00Z"}
-DATA
-  echo "Creado data/raw/events.jsonl"
-fi
+mkdir -p data/raw/events data/raw/olist data/processed docs logs
 
 # Crear documentacion desde templates si no existen
 for doc in architecture decisions troubleshooting; do
@@ -82,7 +67,7 @@ echo
 echo "  2. Cargar base de datos:"
 echo "       python scripts/load_postgres.py"
 echo
-echo "  3. Procesar eventos:"
+echo "  3. Procesar eventos GitHub Archive:"
 echo "       python scripts/process_events.py"
 echo
 echo "  4. Verificar todo:"

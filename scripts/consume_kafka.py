@@ -15,8 +15,8 @@ import os
 import sys
 
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-TOPIC = os.getenv("KAFKA_TOPIC", "cloud-events")
-GROUP_ID = os.getenv("KAFKA_GROUP_ID", "analytics-group")
+TOPIC     = os.getenv("KAFKA_TOPIC", "cloud-events")
+GROUP_ID  = os.getenv("KAFKA_GROUP_ID", "analytics-group")
 
 try:
     from kafka import KafkaConsumer
@@ -54,18 +54,12 @@ def main() -> None:
         for msg in consumer:
             count += 1
             event = msg.value
-            event_type = event.get("event", "?")
-            user_id = event.get("user_id", "-")
-            country = event.get("country", "")
-            ts = event.get("ts", "")
+            event_type = event.get("type", "?")
+            actor = event.get("actor", "-")
+            repo  = event.get("repo", "")
 
-            extras = ""
-            if country:
-                extras += f", country={country}"
-            if ts:
-                extras += f", ts={ts}"
-
-            print(f"[offset={msg.offset}] {event_type:8s} | user_id={user_id}{extras}")
+            extras = f", repo={repo}" if repo else ""
+            print(f"[offset={msg.offset}] {event_type:20s} | actor={actor}{extras}")
     except KeyboardInterrupt:
         pass
     finally:

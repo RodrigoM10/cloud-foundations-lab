@@ -1,5 +1,5 @@
 """
-Productor Kafka: lee data/raw/events.jsonl y publica en el topic cloud-events.
+Productor Kafka: lee data/raw/events/github_events.jsonl y publica en el topic cloud-events.
 Usa Redpanda como broker local (compatible con API Kafka).
 
 Equivalente AWS: Kinesis PutRecord / MSK producer.
@@ -16,10 +16,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EVENTS_FILE = ROOT / "data" / "raw" / "events.jsonl"
+EVENTS_FILE = ROOT / "data" / "raw" / "events" / "github_events.jsonl"
 
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-TOPIC = os.getenv("KAFKA_TOPIC", "cloud-events")
+TOPIC     = os.getenv("KAFKA_TOPIC", "cloud-events")
 
 try:
     from kafka import KafkaProducer
@@ -58,12 +58,12 @@ def main() -> None:
             event = json.loads(line)
             future = producer.send(
                 TOPIC,
-                key=str(event.get("user_id", "")),
+                key=event.get("actor", ""),
                 value=event,
             )
             metadata = future.get(timeout=10)
-            print(f"Publicado: {event.get('event', '?'):8s} | "
-                  f"user_id={event.get('user_id', '-')} "
+            print(f"Publicado: {event.get('type', '?'):20s} | "
+                  f"actor={event.get('actor', '-')} "
                   f"(offset={metadata.offset})")
             sent += 1
 

@@ -9,7 +9,7 @@ Athena real:
 
 Aqui:
   - datos en data/processed/
-  - DuckDB lee directamente el archivo
+  - DuckDB lee directamente el archivo JSON
   - mismo SQL, sin infraestructura adicional
 """
 
@@ -19,31 +19,49 @@ from pathlib import Path
 import duckdb
 
 ROOT = Path(__file__).resolve().parents[1]
-csv_file = ROOT / "data" / "processed" / "sales_by_country.csv"
+json_file = ROOT / "data" / "processed" / "push_events.json"
 
-if not csv_file.exists():
-    print(f"Archivo no encontrado: {csv_file}")
+
+def run_query(json_path: Path) -> list[tuple]:
+    conn = duckdb.connect()
+    try:
+        return conn.execute(f"""
+            SELECT repo, COUNT(*) AS pushes
+            FROM read_json_auto('{json_path}')
+            GROUP BY repo
+            ORDER BY pushes DESC
+            LIMIT 10
+        """).fetchall()
+    except duckdb.BinderException:
+        return []
+
+
+def main(json_path: Path = None) -> None:
+    path = json_path or json_file
+
+    if not path.exists():
+        print(f"Archivo no encontrado: {path}")
+        print()
+        print("Generarlo con:")
+        print("  python scripts/process_events.py")
+        sys.exit(1)
+
+    result = run_query(path)
+
+    print("== Top repositorios por pushes ==")
+    print(f"{'repo':<50} {'pushes':>6}")
+    print("-" * 58)
+    for repo, pushes in result:
+        print(f"{repo:<50} {pushes:>6}")
     print()
-    print("Generarlo con:")
-    print("  docker exec -i cloud-foundations-postgres psql -U postgres -d course < sql/003_export_sales_by_country.sql")
-    print("  docker cp cloud-foundations-postgres:/tmp/sales_by_country.csv data/processed/sales_by_country.csv")
-    sys.exit(1)
+    print(f"Archivo consultado: {path}")
+    print()
+    print("Equivalente en AWS:")
+    print("  SELECT repo, COUNT(*) AS pushes")
+    print("  FROM glue_catalog.processed.push_events")
+    print("  GROUP BY repo ORDER BY pushes DESC LIMIT 10")
+    print("  -- Athena cobra por datos escaneados, no por tiempo de ejecucion")
 
-conn = duckdb.connect()
 
-print("== Ventas por pais ==")
-result = conn.execute(f"""
-    SELECT country, total_amount
-    FROM read_csv('{csv_file}', AUTO_DETECT=TRUE)
-    ORDER BY total_amount DESC
-""").fetchdf()
-print(result)
-
-print()
-print(f"Archivo consultado: {csv_file}")
-print()
-print("Equivalente en AWS:")
-print("  SELECT country, total_amount")
-print("  FROM glue_catalog.processed.sales_by_country")
-print("  ORDER BY total_amount DESC")
-print("  -- Athena cobra por datos escaneados, no por tiempo de ejecucion")
+if __name__ == "__main__":
+    main()

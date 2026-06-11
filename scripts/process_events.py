@@ -4,25 +4,35 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-source_path = ROOT / "data" / "raw" / "events.jsonl"
-target_path = ROOT / "data" / "processed" / "signups.json"
+source_path = ROOT / "data" / "raw" / "events" / "github_events.jsonl"
+target_path = ROOT / "data" / "processed" / "push_events.json"
 environment = os.getenv("APP_ENV", "local")
 
-events = []
 
-with source_path.open() as source:
-    for line in source:
-        events.append(json.loads(line))
+def filter_events(events: list, event_type: str = "PushEvent") -> list:
+    return [e for e in events if e.get("type") == event_type]
 
-signups = [event for event in events if event["event"] == "signup"]
 
-target_path.parent.mkdir(parents=True, exist_ok=True)
+def main(source: Path = None, target: Path = None) -> None:
+    src = source or source_path
+    dst = target or target_path
 
-with target_path.open("w") as target:
-    json.dump(signups, target, indent=2)
+    events = []
+    with src.open() as f:
+        for line in f:
+            events.append(json.loads(line))
 
-print(f"Environment: {environment}")
-print(f"Eventos leidos: {len(events)}")
-print(f"Signups encontrados: {len(signups)}")
-print(f"Salida: {target_path}")
+    filtered = filter_events(events)
 
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    with dst.open("w") as f:
+        json.dump(filtered, f, indent=2)
+
+    print(f"Environment: {environment}")
+    print(f"Eventos leidos:          {len(events)}")
+    print(f"PushEvents encontrados:  {len(filtered)}")
+    print(f"Salida: {dst}")
+
+
+if __name__ == "__main__":
+    main()

@@ -6,39 +6,37 @@ from botocore.exceptions import ClientError
 
 ROOT = Path(__file__).resolve().parents[1]
 
-endpoint = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
-bucket = os.getenv("MINIO_BUCKET", "curso-data")
-access_key = os.getenv("MINIO_ROOT_USER", "minioadmin")
-secret_key = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
-
-s3 = boto3.client(
-    "s3",
-    endpoint_url=endpoint,
-    aws_access_key_id=access_key,
-    aws_secret_access_key=secret_key,
-    region_name="us-east-1",
-)
+ENDPOINT   = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
+BUCKET     = os.getenv("MINIO_BUCKET", "curso-data")
+ACCESS_KEY = os.getenv("MINIO_ROOT_USER", "minioadmin")
+SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
 
 
-def ensure_bucket(name: str) -> None:
+def ensure_bucket(s3_client, name: str) -> None:
     try:
-        s3.head_bucket(Bucket=name)
+        s3_client.head_bucket(Bucket=name)
     except ClientError:
-        s3.create_bucket(Bucket=name)
+        s3_client.create_bucket(Bucket=name)
         print(f"Bucket creado: {name}")
 
 
-def upload(local_path: Path, s3_key: str) -> None:
-    s3.upload_file(str(local_path), bucket, s3_key)
+def upload(s3_client, local_path: Path, bucket: str, s3_key: str) -> None:
+    s3_client.upload_file(str(local_path), bucket, s3_key)
     print(f"Subido: {local_path.name} -> s3://{bucket}/{s3_key}")
 
 
 def main() -> None:
-    ensure_bucket(bucket)
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=ENDPOINT,
+        aws_access_key_id=ACCESS_KEY,
+        aws_secret_access_key=SECRET_KEY,
+        region_name="us-east-1",
+    )
 
-    files_to_upload = [
-        (ROOT / "data" / "raw" / "events.jsonl", "raw/events.jsonl"),
-    ]
+    ensure_bucket(s3, BUCKET)
+
+    files_to_upload = []
 
     processed = ROOT / "data" / "processed"
     for f in processed.glob("*.csv"):
@@ -48,12 +46,12 @@ def main() -> None:
 
     for local_path, s3_key in files_to_upload:
         if local_path.exists():
-            upload(local_path, s3_key)
+            upload(s3, local_path, BUCKET, s3_key)
         else:
             print(f"WARN archivo no encontrado, se omite: {local_path}")
 
-    response = s3.list_objects_v2(Bucket=bucket)
-    print(f"\nObjetos en s3://{bucket}:")
+    response = s3.list_objects_v2(Bucket=BUCKET)
+    print(f"\nObjetos en s3://{BUCKET}:")
     for obj in response.get("Contents", []):
         print(f"  {obj['Key']} ({obj['Size']} bytes)")
 
