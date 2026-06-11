@@ -15,22 +15,14 @@ import time
 import boto3
 from botocore.exceptions import ClientError
 
-ENDPOINT = os.getenv("LOCALSTACK_ENDPOINT", "http://localhost:4566")
-REGION = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
+ENDPOINT   = os.getenv("LOCALSTACK_ENDPOINT", "http://localhost:4566")
+REGION     = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 QUEUE_NAME = os.getenv("SQS_QUEUE_NAME", "cloud-foundations-events")
 
-sqs = boto3.client(
-    "sqs",
-    endpoint_url=ENDPOINT,
-    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID", "test"),
-    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY", "test"),
-    region_name=REGION,
-)
 
-
-def get_queue_url(name: str) -> str:
+def get_queue_url(sqs_client, name: str) -> str:
     try:
-        return sqs.get_queue_url(QueueName=name)["QueueUrl"]
+        return sqs_client.get_queue_url(QueueName=name)["QueueUrl"]
     except ClientError as e:
         if e.response["Error"]["Code"] == "AWS.SimpleQueueService.NonExistentQueue":
             print(f"Cola '{name}' no existe. Ejecutar primero: python scripts/produce_sqs.py")
@@ -39,7 +31,15 @@ def get_queue_url(name: str) -> str:
 
 
 def main() -> None:
-    queue_url = get_queue_url(QUEUE_NAME)
+    sqs = boto3.client(
+        "sqs",
+        endpoint_url=ENDPOINT,
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID", "test"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY", "test"),
+        region_name=REGION,
+    )
+
+    queue_url = get_queue_url(sqs, QUEUE_NAME)
     print(f"Consumiendo de {QUEUE_NAME}...")
 
     received_total = 0
@@ -63,18 +63,11 @@ def main() -> None:
         for msg in messages:
             received_total += 1
             body = json.loads(msg["Body"])
-            event_type = body.get("event", "?")
-            user_id = body.get("user_id", "-")
-            country = body.get("country", "")
-            ts = body.get("ts", "")
+            event_type = body.get("type", "?")
+            repo = body.get("repo", "-")
+            actor = body.get("actor", "-")
 
-            extras = ""
-            if country:
-                extras += f", country={country}"
-            if ts:
-                extras += f", ts={ts}"
-
-            print(f"[{received_total}] {event_type:8s} | user_id={user_id}{extras}")
+            print(f"[{received_total}] {event_type:20s} | actor={actor}, repo={repo}")
 
             sqs.delete_message(
                 QueueUrl=queue_url,

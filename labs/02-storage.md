@@ -1,7 +1,5 @@
 # Lab 02 — Storage: object storage y base de datos
 
-**Clases:** 5 y 6 · **Tiempo estimado:** 30-40 min
-
 Objetivo: subir archivos a MinIO (S3 local), consultar desde PostgreSQL, y entender el patrón data lake en tres capas.
 
 ## Prerrequisitos
