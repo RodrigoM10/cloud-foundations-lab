@@ -3,11 +3,11 @@
 ## Formato
 
 ```text
-Decision:
-Contexto:
-Alternativas:
-Tradeoff:
-Resultado:
+Decision: Se creo una rama lab-02-Mendoza, desde main, se realizo un merge de lab-02-ejemplo. En ese punto se realizaron los comandos correspondientes paso a paso.
+Contexto: fork branch github / codespace 
+Alternativas: -
+Tradeoff: TEST.
+Resultado: lab-02 completo.
 ```
 
 ## Decisiones
