@@ -22,6 +22,20 @@ Tradeoff: no se practica consola AWS real en profundidad.
 
 Resultado: los labs son reproducibles y reutilizables.
 
+### 002 - Entorno de desarrollo
+
+Decision: GitHub Codespaces.
+
+Contexto: el grupo no tiene instalaciones homogéneas (mix de macOS, Windows y Linux).
+Codespaces ofrece el mismo entorno para todos sin configuración local.
+
+Alternativas: Docker Desktop local, WSL2, máquina virtual.
+
+Tradeoff: depende de conectividad y de los free-tier hours disponibles (60 hs/mes por cuenta).
+Con Docker local se trabaja offline y sin límite de tiempo.
+
+Resultado: Codespaces para las clases, Docker local como fallback documentado en el README.
+
 ### 003 - Formato de eventos crudos
 
 Decision: JSONL (JSON Lines) para data/raw/events.jsonl.
@@ -48,16 +62,16 @@ Elegimos un script por transformación: más legible, más fácil de testear.
 
 Resultado: process_events.py → data/processed/push_events.json (filtra PushEvent)
 
-### 002 - Entorno de desarrollo
+### 005 - Identidad y credenciales en el lab
 
-Decision: GitHub Codespaces.
+Decision: usar roles con STS en lugar de access keys de larga duración para acceso entre servicios.
 
-Contexto: el grupo no tiene instalaciones homogéneas (mix de macOS, Windows y Linux).
-Codespaces ofrece el mismo entorno para todos sin configuración local.
+Contexto: las access keys no expiran y si se filtran dan acceso indefinido.
+Los roles con STS generan credenciales temporales (15 min a 12 hs) con trazabilidad.
 
-Alternativas: Docker Desktop local, WSL2, máquina virtual.
+Alternativas: access keys rotadas manualmente, vault/secret manager.
 
-Tradeoff: depende de conectividad y de los free-tier hours disponibles (60 hs/mes por cuenta).
-Con Docker local se trabaja offline y sin límite de tiempo.
+Tradeoff: asumir un rol requiere que el servicio tenga permiso de sts:AssumeRole
+y que el rol tenga un trust policy correcto. Más configuración inicial, menos riesgo.
 
-Resultado: Codespaces para las clases, Docker local como fallback documentado en el README.
+Resultado: app-role con inline policy de privilegio mínimo sobre course-data-raw.

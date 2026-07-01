@@ -218,7 +218,7 @@ awslocal s3 cp s3://course-data-raw/sample/hello.txt -
 awslocal s3 cp data/processed/push_events.json s3://course-data-raw/test/prueba.json
 
 # Intentar borrar (debería fallar si hay un Deny — no se enforcea en Community)
-awslocal s3 rm s3://course-data-raw/sample/hello.txt
+awslocal s3 cp data/processed/push_events.json s3://course-data-raw/test/prueba.json
 ```
 
 > **Nota**: en LocalStack Community el `Deny` no bloquea las operaciones.
