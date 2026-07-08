@@ -61,3 +61,18 @@ Tradeoff: depende de conectividad y de los free-tier hours disponibles (60 hs/me
 Con Docker local se trabaja offline y sin límite de tiempo.
 
 Resultado: Codespaces para las clases, Docker local como fallback documentado en el README.
+
+### 005 - Instance profile en lugar de access keys en la instancia
+
+Decision: usar instance profile (rol via IMDSv2) en lugar de access keys hardcodeadas en la VM.
+
+Contexto: una instancia que necesita leer S3 puede acceder por dos caminos:
+(a) access keys guardadas en /home/user/.aws/credentials, o
+(b) un rol asociado vía instance profile que devuelve creds temporales por IMDSv2.
+
+Tradeoff: opción (a) es más directa pero deja claves de larga duración en disco
+— si la instancia se compromete o se snapshotea, esas claves quedan expuestas.
+Opción (b) requiere setup inicial pero las credenciales rotan automáticamente y
+nunca tocan disco.
+
+Resultado: instance profile 'app-instance-profile' con rol 'app-role' del lab 04.
