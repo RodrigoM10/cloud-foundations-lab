@@ -74,4 +74,7 @@ Alternativas: access keys rotadas manualmente, vault/secret manager.
 Tradeoff: asumir un rol requiere que el servicio tenga permiso de sts:AssumeRole
 y que el rol tenga un trust policy correcto. Más configuración inicial, menos riesgo.
 
+
 Resultado: app-role con inline policy de privilegio mínimo sobre course-data-raw.
+
+Nota sobre el entorno local (LocalStack): Utilizamos LocalStack Community para emular AWS. Se verificó que esta versión gratuita permite probar la mecánica de IAM (crear roles, asumir credenciales vía STS), pero no enforcea las políticas. Un `Deny` explícito no bloquea el acceso localmente. Por lo tanto, las pruebas definitivas de seguridad y políticas destructivas deberán realizarse en un entorno AWS real (Sandbox/Dev).
