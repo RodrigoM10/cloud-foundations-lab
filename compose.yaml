@@ -46,10 +46,10 @@ services:
       retries: 5
 
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:3
     container_name: cloud-foundations-localstack
     environment:
-      SERVICES: s3,sqs,sns,lambda,dynamodb,events
+      SERVICES: s3,sqs,sns,lambda,dynamodb,events,iam,sts
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
     ports:
       - "4566:4566"

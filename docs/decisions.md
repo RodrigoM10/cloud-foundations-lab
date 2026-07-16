@@ -62,3 +62,19 @@ Elegimos un script por transformación: más legible, más fácil de testear.
 
 Resultado: process_events.py → data/processed/push_events.json (filtra PushEvent)
 
+### 005 - Identidad y credenciales en el lab
+
+Decision: usar roles con STS en lugar de access keys de larga duración para acceso entre servicios.
+
+Contexto: las access keys no expiran y si se filtran dan acceso indefinido.
+Los roles con STS generan credenciales temporales (15 min a 12 hs) con trazabilidad.
+
+Alternativas: access keys rotadas manualmente, vault/secret manager.
+
+Tradeoff: asumir un rol requiere que el servicio tenga permiso de sts:AssumeRole
+y que el rol tenga un trust policy correcto. Más configuración inicial, menos riesgo.
+
+
+Resultado: app-role con inline policy de privilegio mínimo sobre course-data-raw.
+
+Nota sobre el entorno local (LocalStack): Utilizamos LocalStack Community para emular AWS. Se verificó que esta versión gratuita permite probar la mecánica de IAM (crear roles, asumir credenciales vía STS), pero no enforcea las políticas. Un `Deny` explícito no bloquea el acceso localmente. Por lo tanto, las pruebas definitivas de seguridad y políticas destructivas deberán realizarse en un entorno AWS real (Sandbox/Dev).

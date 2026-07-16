@@ -5,3 +5,4 @@ python-dotenv>=1.0.0
 kafka-python>=2.0.0
 redis>=5.0.0
 pytest>=8.0.0
+awscli-local>=0.22.0
