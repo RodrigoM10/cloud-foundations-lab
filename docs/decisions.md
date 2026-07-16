@@ -61,3 +61,18 @@ Tradeoff: depende de conectividad y de los free-tier hours disponibles (60 hs/me
 Con Docker local se trabaja offline y sin límite de tiempo.
 
 Resultado: Codespaces para las clases, Docker local como fallback documentado en el README.
+
+### 008 - VPC endpoint en lugar de NAT para tráfico a S3
+
+Decision: usar VPC endpoint Gateway para que la subred privada llegue a S3,
+en lugar de un NAT gateway con egress a Internet.
+
+Contexto: una EC2 privada que necesita leer S3 puede ir por dos caminos:
+(a) NAT gateway en la subred pública → Internet → S3 (más caro, expone egress),
+(b) VPC endpoint Gateway → red interna de AWS (gratis, tráfico privado).
+
+Tradeoff: VPC endpoint solo cubre S3 y DynamoDB; para otros servicios habría
+que sumar PrivateLink (Interface endpoints, $/hora por endpoint).
+
+Resultado: VPC endpoint para S3, sin NAT. Si después necesitamos egress
+genuino (apt-get, pip install, APIs externas) sumamos NAT con costo conocido.
