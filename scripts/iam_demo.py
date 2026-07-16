@@ -28,6 +28,13 @@ BOTO_KWARGS = dict(
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+def _already_exists(e: ClientError) -> bool:
+    # AWS real devuelve Code='EntityAlreadyExists'.
+    # LocalStack 3.x community devuelve el mensaje como Code (ej: 'Group X already exists').
+    code = e.response["Error"].get("Code", "")
+    return code == "EntityAlreadyExists" or "already exists" in code.lower()
+
+
 def make_client(service: str):
     return boto3.client(service, **BOTO_KWARGS)
 
@@ -48,7 +55,7 @@ def create_group_with_policies(iam):
         iam.create_group(GroupName=group)
         print(f"  grupo '{group}' creado")
     except ClientError as e:
-        if e.response["Error"]["Code"] == "EntityAlreadyExists":
+        if _already_exists(e):
             print(f"  grupo '{group}' ya existe")
         else:
             raise
@@ -64,7 +71,7 @@ def create_group_with_policies(iam):
         policy_arn = resp["Policy"]["Arn"]
         print(f"  policy 'S3ReadOnlyLab' creada: {policy_arn}")
     except ClientError as e:
-        if e.response["Error"]["Code"] == "EntityAlreadyExists":
+        if _already_exists(e):
             account_id = iam.get_user()["User"]["Arn"].split(":")[4]
             policy_arn = f"arn:aws:iam::{account_id}:policy/S3ReadOnlyLab"
             print(f"  policy 'S3ReadOnlyLab' ya existe: {policy_arn}")
@@ -82,7 +89,7 @@ def create_user(iam, group: str):
         iam.create_user(UserName=username)
         print(f"  usuario '{username}' creado")
     except ClientError as e:
-        if e.response["Error"]["Code"] == "EntityAlreadyExists":
+        if _already_exists(e):
             print(f"  usuario '{username}' ya existe")
         else:
             raise
@@ -116,7 +123,7 @@ def create_role(iam):
         )
         print(f"  rol '{role_name}' creado")
     except ClientError as e:
-        if e.response["Error"]["Code"] == "EntityAlreadyExists":
+        if _already_exists(e):
             print(f"  rol '{role_name}' ya existe")
         else:
             raise

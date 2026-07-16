@@ -1,0 +1,20 @@
+{
+  "GroupName": "web-sg",
+  "Description": "Lab 05 — HTTP (80) público, SSH (22) restringido a tu IP",
+  "IngressRules": [
+    {
+      "Sid": "HTTP-Public",
+      "IpProtocol": "tcp",
+      "FromPort": 80,
+      "ToPort": 80,
+      "IpRanges": [{"CidrIp": "0.0.0.0/0", "Description": "HTTP desde cualquier origen"}]
+    },
+    {
+      "Sid": "SSH-RestrictedToMyIP",
+      "IpProtocol": "tcp",
+      "FromPort": 22,
+      "ToPort": 22,
+      "IpRanges": [{"CidrIp": "REEMPLAZAR_CON_TU_IP/32", "Description": "SSH solo desde tu IP"}]
+    }
+  ]
+}

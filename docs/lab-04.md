@@ -15,9 +15,12 @@ de identidad.
 ## Prerequisitos
 
 - Rama de trabajo: `lab-04-tuNombre` creada desde `main`
+- Dependencias instaladas: `pip install -r requirements.txt` (incluye `awscli-local`)
 - Servicios activos: `docker compose up -d`
 - Verificar LocalStack: `curl -s http://localhost:4566/_localstack/health | python3 -m json.tool`
-- `awslocal` disponible: viene con `pip install -r requirements.txt` (paquete `awscli-local`)
+- Verificar `awslocal`: `awslocal --version` debe responder
+
+> En Codespaces los dos primeros pasos ocurren solos por el `postCreateCommand` del devcontainer. Localmente hay que correrlos a mano la primera vez.
 
 ---
 
