@@ -1,0 +1,39 @@
+{
+  "db_instance": {
+    "Identifier": "app-db",
+    "Engine": "postgres",
+    "EngineVersion": "16.3",
+    "InstanceClass": "db.t3.micro",
+    "AllocatedStorage": 20,
+    "MasterUsername": "app",
+    "DBName": "appdb",
+    "Port": 5432,
+    "BackupRetentionPeriod": 7,
+    "MultiAZ": false,
+    "StorageEncrypted": true,
+    "PubliclyAccessible": false,
+    "Notes": "MultiAZ=false en dev. En prod debería ser true. PITR funciona con BackupRetentionPeriod>=1."
+  },
+  "secret": {
+    "Name": "app/db",
+    "Description": "Credencial de la app para RDS app-db — lab 08",
+    "PayloadSchema": {
+      "username": "<de db_instance.MasterUsername>",
+      "password": "<generado por la demo, no hardcodeado>",
+      "host": "<endpoint de la RDS>",
+      "port": 5432,
+      "dbname": "appdb"
+    }
+  },
+  "security_group": {
+    "Name": "db-sg",
+    "Description": "Lab 08 — RDS privada. Ingress solo desde app-private-sg de lab 07.",
+    "VpcLookupTag": "course-vpc",
+    "IngressFromSgName": "app-private-sg",
+    "Port": 5432
+  },
+  "db_subnet_group": {
+    "Name": "course-db-subnets",
+    "Description": "Subnet group de la RDS — usa las subnets privadas de course-vpc"
+  }
+}

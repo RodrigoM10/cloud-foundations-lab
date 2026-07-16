@@ -1,0 +1,46 @@
+{
+  "vpc": {
+    "Name": "course-vpc",
+    "CidrBlock": "10.0.0.0/16",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true
+  },
+  "subnets": [
+    {
+      "Name": "public-1a",
+      "CidrBlock": "10.0.1.0/24",
+      "AvailabilityZone": "us-east-1a",
+      "Tier": "public"
+    },
+    {
+      "Name": "private-1b",
+      "CidrBlock": "10.0.2.0/24",
+      "AvailabilityZone": "us-east-1b",
+      "Tier": "private"
+    }
+  ],
+  "security_groups": [
+    {
+      "Name": "web-public-sg",
+      "Description": "Capa pública — HTTP 80 desde Internet",
+      "IngressRules": [
+        {"IpProtocol": "tcp", "FromPort": 80, "ToPort": 80, "CidrIp": "0.0.0.0/0", "Description": "HTTP público"}
+      ]
+    },
+    {
+      "Name": "app-private-sg",
+      "Description": "Capa privada — solo desde web-public-sg (referencia por SG, no IP)",
+      "IngressRules": [
+        {"IpProtocol": "tcp", "FromPort": 8080, "ToPort": 8080, "ReferencedSgName": "web-public-sg", "Description": "App desde la capa pública"}
+      ]
+    }
+  ],
+  "endpoints": [
+    {
+      "Service": "com.amazonaws.us-east-1.s3",
+      "Type": "Gateway",
+      "TargetRouteTable": "private",
+      "Comment": "Salida directa a S3 desde la subred privada — sin internet, sin NAT"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
     "ghcr.io/devcontainers/features/aws-cli:1": {}
   },
 
-  "postCreateCommand": "python3 -m pip install -r requirements.txt && cp .env.example .env",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y postgresql-client && python3 -m pip install -r requirements.txt && cp .env.example .env",
   "postStartCommand": "docker compose up -d",
 
   "forwardPorts": [5432, 9000, 9001, 6379, 9092, 4566],
