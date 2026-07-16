@@ -54,3 +54,4 @@ produce_kafka.py → Redpanda ← consume_kafka.py
         ↓
 produce_sqs.py → LocalStack SQS ← consume_sqs.py
 ```
+
