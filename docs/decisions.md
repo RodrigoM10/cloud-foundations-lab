@@ -61,3 +61,18 @@ Tradeoff: depende de conectividad y de los free-tier hours disponibles (60 hs/me
 Con Docker local se trabaja offline y sin límite de tiempo.
 
 Resultado: Codespaces para las clases, Docker local como fallback documentado en el README.
+
+### 007 - course-data-lake como fuente durable del módulo
+
+Decision: separar 'course-data-raw' (demo IAM del lab 04) de 'course-data-lake' (fuente
+de verdad de datos reales del curso). El segundo nace con BPA, encryption y versioning
+ON, y bucket policy que restringe lectura al instance role de la app.
+
+Contexto: necesitamos un lugar durable para Olist + GitHub Archive que sobreviva al
+ciclo de vida de cada lab. Mezclar con el bucket de demo IAM enmascara el propósito
+de cada uno.
+
+Tradeoff: dos buckets en lugar de uno. A favor: separación clara de intención,
+escalable a futuras clases (Analytics consume directo desde la lake).
+
+Resultado: course-data-lake con versioning + BPA + SSE + bucket policy desde el día 1.
